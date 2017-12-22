@@ -1,46 +1,18 @@
 import sys
 import os
-print(os.path.dirname(__file__))
 import random
 import re
 import codecs
 import string
 from happyfuntokenizing import *
 from nltk.corpus import stopwords
-# from textblob import *
 from nltk.stem.wordnet import WordNetLemmatizer
-from sklearn import svm
-from sklearn import metrics
-from sklearn import cross_validation
-from sklearn.feature_extraction.text import CountVectorizer
 
-
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-
-from sklearn.cross_validation import KFold
-
-from sklearn.metrics import accuracy_score
-
-from sklearn.metrics import confusion_matrix
-import numpy as np
 import gzip
-from sklearn.externals import joblib
 import pickle
-from dishelper.settings import BASE_DIR
 
-
-#basepath = "/home/du3/13CS30043/BTP/Classifier/"
-# basepath = '/home/du3/13CS30043/BTP/System/Gandhi_Award/communal/'
-# basepath = BASE_DIR+"/dis_app/"
 basepath = ""
 
-model_path = basepath+"ant_communal_trained.pkl"
 mycompile = lambda pat:  re.compile(pat,  re.UNICODE)
 
 OFFSET = 2
@@ -64,7 +36,6 @@ ANTICOMMUNAL_HASHTAGS_PATH = basepath+'DICTIONARY/anticommunal_hashtags.txt'
 
 cachedstopwords = stopwords.words("english")	# English Stop Words
 Tagger_Path = basepath+'ark-tweet-nlp-0.3.2/'
-#Tagger_Path = '/home/krudra/twitter_code/aaai/characterize_user/wordcloud/ark-tweet-nlp-0.3.2/'
 lmtzr = WordNetLemmatizer()		# Lemmatizer
 
 SUBJECTIVE = {}
@@ -142,12 +113,6 @@ def Read_Files():
 				COMMUNAL[w] = (int(wl[1]),0)
 			else:
 				COMMUNAL[w] = (int(wl[1]),int(wl[2]))
-			'''	
-			try:
-				x1 = int(wl[1])
-			except Exception as e
-			COMMUNAL[w] = (int(wl[1]),int(wl[2]),int(wl[3]))
-			'''
 	fp.close()
 	
 
@@ -327,7 +292,7 @@ def get_religious_slang(unigram,bigram,trigram):
 			if flag==1:
 				return 1
 
-	################################# Second Check Bigrams ??? - we should have checked for unigrams ################################################################
+	################################# Second Check Bigrams ################################################################
 	
 	flag = 0
 	for i in range(0,len(bigram),1):
@@ -443,7 +408,7 @@ def get_religious_slang(unigram,bigram,trigram):
 			if flag==1:
 				return 1
 	
-	################################# Third Check Trigrams ??? - we should have checked for unigrams ################################################################
+	################################# Third Check Trigrams ################################################################
 	
 	flag = 0
 	for i in range(0,len(trigram),1):
@@ -551,8 +516,6 @@ def get_religious_slang(unigram,bigram,trigram):
 			if flag==1:
 				return 1
 
-			# print(str_before, unigram_before, str_after, unigram_after)
-
 			for j in range(0,len(bigram_after),1):
 				if SUBJECTIVE.__contains__(bigram_after[j])==True:
 					if SUBJECTIVE[bigram_after[j]]==-1:
@@ -646,20 +609,12 @@ def multiple_classify(fn,ofname):
 
 	fp = open(fn,'r')
 	fo = open('temp.txt','w')
-	# nepal_class_label = []
 	tweets = []
-	# np_tweets = []
-	# nepal_sub_feature = []
 	cnt = 0
 	for l in fp:
-		# wl = l.split('\t')
 		fo.write(l.strip(' \t\n\r').lower() + '\n')
 		cnt+=1
-		# if cnt>=10000:
-		# 	break
-		# nepal_class_label.append(int(wl[4].strip('\t\n\r')))
-		# tweets.append(wl[3].strip(' \t\n\r'))
-		# nepal_sub_feature.append((TT[wl[1].strip(' \t\n\r')],UB[wl[2].strip(' \t\n\r')],UT[wl[2].strip(' \t\n\r')]))
+
 	fp.close()
 	fo.close()
 	
@@ -732,10 +687,7 @@ def multiple_classify(fn,ofname):
 			REL_SARC = get_religious_sarcasm(unigram)
 			REL_COUNT = getreligiouscount(unigram)
 			COL_TERM = getcollocationterm(unigram,bigram,trigram)
-			#t = (REL_TERM,SLNG,COM_SLNG,h)
-			#feature.append(t)
-			#if (REL_TERM==1 and SLNG==1) or COM_SLNG==1 or h==1:
-			# print("In else", unigram)
+
 			if REL_SLNG==1 or COM_SLNG==1 or h==1 or REL_SARC==1:
 				label.append(1)
 			elif REL_COUNT==1 or COL_TERM==1 or ah==1:
@@ -757,77 +709,21 @@ def multiple_classify(fn,ofname):
 	cnt = 0
 	for l in fp:
 			try:
-				# wl = l.split('\t')
 				s = l.strip() + '\t'+ str(predicted_label[index])
 				fo.write(s+'\n')
 				index+=1
 				cnt+=1
-				# if cnt >=10000:
-				# 	break
 			except:
 				pass
-				# print(l)
 
 	fp.close()
 	fo.close()
 
+def main():
+	fn = sys.argv[1]
+	ofname = sys.argv[2]
 
-	# if label==1:
-	# 	print('Communal Tweet')
-	# elif label==3:
-	# 	print('Anticommunal Tweet')
-	# else:
-	# 	print('General Tweet')
-	
-	#train_clf = joblib.load(modelname)
-	#predicted_label = train_clf.predict(feature)
-	#predicted_proba = train_clf.predict_proba(feature)
-	#predicted_label = label
+	multiple_classify(fn, ofname)
 
-	'''fp = open(fn,'r')
-        fo = open(ofname,'w')
 
-        index = 0
-        for l in fp:
-                wl = l.split('\t')
-                s = wl[0].strip(' \t\n\r') + '\t' + wl[1].strip(' \t\n\r') + '\t' + wl[2].strip(' \t\n\r') + '\t' + wl[3].strip(' \t\n\r') + '\t' + wl[4].strip(' \t\n\r') + '\t' + wl[5].strip(' \t\n\r') + '\t' + wl[6].strip(' \t\n\r') + '\t' + str(label[index])
-                fo.write(s+'\n')
-                index+=1
-
-        fp.close()
-        fo.close()
-
-        print('Complete Future Event')'''
-
-# if __name__ == "__main__":
-# 	try:
-# 		_, fn, ofname = sys.argv
-# 	except Exception as e:
-# 		print(str(s))
-# 		sys.exit(0)
-# 	# ofname = ofname+""
-# 	final_string = ""
-
-# 	anti_string = ""
-
-# 	# if os.path.isfile(ofname):
-# 	# 	file = codecs.open(ofname, 'r', 'utf-8')
-# 	# 	for row in file:
-# 	# 		s = row.strip().split('\t')
-# 	# 		if s[-1] == "1":
-# 	# 			final_string = final_string+s[2]+'\t'+s[3]+'##################'
-# 	# 		elif s[-1] == "2":
-# 	# 			anti_string = anti_string+s[2]+'\t'+s[3]+'##################'
-# 	# else:
-# 	main(fn,ofname)
-# 	file = codecs.open(ofname, 'r', 'utf-8')
-# 	for row in file:
-# 		s = row.strip().split('\t')
-# 		if s[-1] == "1":
-# 			final_string = final_string+s[3]+'##################'
-# 		elif s[-1] == "3":
-# 			anti_string = anti_string+s[3]+'##################'
-
-# 	print(final_string)
-
-# 	print(anti_string)
+if __name__ == "__main__":main()
